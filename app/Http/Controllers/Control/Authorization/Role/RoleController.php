@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Control\Authorization\Role;
 
+use App\Events\Logs\User\EventActivityRecordUserTypeAdded;
+use App\Events\Logs\User\EventActivityRecordUserTypeChangead;
+use App\Events\Logs\User\EventActivityRecordUserTypeRemoved;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Control\Authorization\RoleRequest;
 use App\Models\Role;
 use App\Authorizations\Gate\CheckGate;
 use Artesaos\SEOTools\Facades\SEOMeta;
 use Illuminate\Http\Request;
+use stdClass;
 
 class RoleController extends Controller
 {
@@ -61,10 +65,13 @@ class RoleController extends Controller
                 return redirect()->route('control.authorization.role.read')->with('danger', \Config('constants.MSG_DATA_EQUALS_REGISTERED'));
             }
 
-            $this->role->create([
+            $stdClass = new stdClass();
+            $stdClass->new = $this->role->create([
                     'name' => str_slug( $request->input('name'), '_' ),
                     'description' => $request->input('description')
                 ]);
+
+            event(new EventActivityRecordUserTypeAdded($stdClass));
 
             return redirect()->route('control.authorization.role.read.search', $request->input('description'))->with('success', \Config('constants.MSG_DATA_REGISTERED_SUCCESS'));
 
@@ -124,11 +131,17 @@ class RoleController extends Controller
                 throw new \Exception();
             }
 
+            $stdClass = new stdClass();
+            $stdClass->old = $this->role->findOrFail($request->input('role_id'));
+
             $this->role->where('id', $request->input('role_id'))
                 ->update([
                     'name' => str_slug( $request->input('name'), '_' ),
                     'description' => $request->input('description')
                 ]);
+
+            $stdClass->new = $this->role->findOrFail($request->input('role_id'));
+            event(new EventActivityRecordUserTypeChangead($stdClass));
 
             return redirect()->route('control.authorization.role.read')->with('success', \Config('constants.MSG_USER_UPDATE_SUCCESS'));
 
@@ -154,7 +167,12 @@ class RoleController extends Controller
             }
 
             if ($this->role->where('id', $id)->where('default', '!=', 1)->count() > 0) {
+
+                $stdClass = new stdClass();
+                $stdClass->old = $this->role->findOrFail($id);
                 $this->role->destroy($id);
+                event(new EventActivityRecordUserTypeRemoved($stdClass));
+
             }
 
         } catch (\Exception $e) {

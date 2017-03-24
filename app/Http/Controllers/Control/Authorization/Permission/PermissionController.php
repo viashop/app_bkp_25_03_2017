@@ -2,14 +2,22 @@
 
 namespace App\Http\Controllers\Control\Authorization\Permission;
 
+use App\Events\Logs\User\EventActivityRecordUserTypeAdded;
+use App\Events\Logs\User\EventActivityRecordUserTypeChangead;
+use App\Events\Logs\User\EventActivityRecordUserTypeRemoved;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Control\Authorization\PermissonRequest;
 use App\Models\Permission;
 use App\Authorizations\Gate\CheckGate;
 use Artesaos\SEOTools\Facades\SEOMeta;
 use Illuminate\Http\Request;
+use stdClass;
 
 
+/**
+ * Class PermissionController
+ * @package App\Http\Controllers\Control\Authorization\Permission
+ */
 class PermissionController extends Controller
 {
 
@@ -39,6 +47,10 @@ class PermissionController extends Controller
         return view('control.authorization.permission.create');
     }
 
+    /**
+     * @param PermissonRequest $request
+     * @return mixed
+     */
     private function existsPermission(PermissonRequest $request)
     {
         return $this->permission->where(function ($query) use ($request) {
@@ -63,10 +75,13 @@ class PermissionController extends Controller
                  return redirect()->route('control.authorization.permission.read')->with('danger', \Config('constants.MSG_DATA_EQUALS_REGISTERED'));
              }
 
-             $this->permission->create([
+             $stdClass = new stdClass();
+             $stdClass->new = $this->permission->create([
                      'name' => str_slug( $request->input('name'), '_' ),
                      'description' => $request->input('description')
                  ]);
+
+             event(new EventActivityRecordUserTypeAdded($stdClass));
 
              return redirect()->route('control.authorization.permission.read.search', $request->input('description'))->with('success', \Config('constants.MSG_DATA_REGISTERED_SUCCESS'));
 
@@ -123,6 +138,9 @@ class PermissionController extends Controller
 
          try {
 
+             $stdClass = new stdClass();
+             $stdClass->old = $this->permission->findOrFail($request->input('permission_id'));
+
              if ($this->permission->where('id', $request->input('permission_id'))->count() <= 0) {
                  throw new \Exception();
              }
@@ -132,6 +150,9 @@ class PermissionController extends Controller
                      'name' => str_slug( $request->input('name'), '_' ),
                      'description' => $request->input('description')
                  ]);
+
+             $stdClass->new = $this->permission->findOrFail($request->input('permission_id'));
+             event(new EventActivityRecordUserTypeChangead($stdClass));
 
              return redirect()->route('control.authorization.permission.read')->with('success', \Config('constants.MSG_USER_UPDATE_SUCCESS'));
 
@@ -153,7 +174,12 @@ class PermissionController extends Controller
          try {
 
              if ($this->permission->where('id', $id)->where('default', '!=', 1)->count() > 0) {
+
+                 $stdClass = new stdClass();
+                 $stdClass->old = $this->permission->findOrFail($id);
                  $this->permission->destroy($id);
+                 event(new EventActivityRecordUserTypeRemoved($stdClass));
+
                  return redirect()->back()->with('success', \Config('constants.MSG_DATA_REMOVED_SUCCESS'));
              }
 
