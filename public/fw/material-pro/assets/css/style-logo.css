@@ -1,0 +1,19 @@
+
+@import url('https://fonts.googleapis.com/css?family=Ubuntu');
+
+.logo-via{
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 1em;
+    color: #fff;
+}
+
+.logo-loja{
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 1em;
+    font-weight: bold;
+    color: #fff;
+}
+
+body {
+    font-family: 'Ubuntu', sans-serif;
+}
