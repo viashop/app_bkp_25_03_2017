@@ -8,6 +8,7 @@ use App\Repositories\OAuth\TwitterRepository;
 use App\Traits\Storage\StorageDataUser;
 use Artdarek\OAuth\OAuth;
 use Exception;
+use InvalidArgumentException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 
@@ -111,15 +112,19 @@ class TwitterController extends Controller
                 $url = $tw->getAuthorizationUri(['oauth_token' => $reqToken->getRequestToken()]);
 
                 if (!empty($request->input('denied'))) {
-                    throw new Exception( Config::get('constants.OAUTH_DENIED') );
+                    throw new InvalidArgumentException( Config::get('constants.OAUTH_DENIED') );
                 }
                 // return to twitter login url
                 return redirect((string)$url);
             }
 
-        } catch (Exception $e) {
+        } catch (InvalidArgumentException $e) {
 
             return redirect()->route('account.login')->with('message_error', $e->getMessage());
+
+        } catch (Exception $e) {
+
+            return redirect()->route('account.login')->with('message_error', Config::get('constants.ERROR_PROCESS_OAUTH'));
 
         }
 

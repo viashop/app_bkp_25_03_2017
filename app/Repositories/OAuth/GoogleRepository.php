@@ -7,11 +7,13 @@ use App\Contracts\Repositories\OAuth\OAuthExistsInterface;
 use App\Contracts\Repositories\OAuth\OAuthInterface;
 use App\Events\Logs\User\EventActivityRecordUserLogged;
 use App\Events\Logs\User\EventActivityRecordUserRegistered;
-use Illuminate\Database\QueryException;
 use App\Models\OAuth;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 use stdClass;
 
 class GoogleRepository implements OAuthInterface, OAuthExistsInterface
@@ -56,10 +58,10 @@ class GoogleRepository implements OAuthInterface, OAuthExistsInterface
 
     /**
      * Register Via OAuth
-     * @param $data
-     * @return \Illuminate\Database\Eloquent\Model|mixed|null|static
+     * @param array $data
+     * @return \Illuminate\Database\Eloquent\Model|null|static
      */
-    public function register($data)
+    public function register(array $data)
     {
 
         DB::beginTransaction();
@@ -133,14 +135,12 @@ class GoogleRepository implements OAuthInterface, OAuthExistsInterface
 
     }
 
-
     /**
-     * Autheticate Via OAuth
-     * @param $data
+     * Authenticate Via OAuth
+     * @param array $data
      * @return \Illuminate\Database\Eloquent\Model|null|static
-     * @throws \Exception
      */
-    public function authenticate($data)
+    public function authenticate(array $data)
     {
 
         DB::beginTransaction();
@@ -172,7 +172,7 @@ class GoogleRepository implements OAuthInterface, OAuthExistsInterface
 
             DB::commit();
 
-            throw new \Exception( \Config::get('constants.APP_IS_NOT_ASSOCIATED') );
+            throw new InvalidArgumentException( Config::get('constants.APP_IS_NOT_ASSOCIATED') );
 
         } catch (QueryException $e) {
 

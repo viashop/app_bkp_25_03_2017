@@ -10,7 +10,9 @@ use Illuminate\Database\QueryException;
 use App\Models\OAuth;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 use stdClass;
 
 /**
@@ -61,10 +63,10 @@ class TwitterRepository implements OAuthInterface, OAuthExistsInterface
 
     /**
      * Register Via OAuth
-     * @param $data
-     * @return \Illuminate\Database\Eloquent\Model|mixed|null|static
+     * @param array $data
+     * @return \Illuminate\Database\Eloquent\Model|null|static
      */
-    public function register($data)
+    public function register(array $data)
     {
 
         DB::beginTransaction();
@@ -144,11 +146,10 @@ class TwitterRepository implements OAuthInterface, OAuthExistsInterface
 
     /**
      * Autheticate Via OAuth
-     * @param $data
+     * @param array $data
      * @return \Illuminate\Database\Eloquent\Model|null|static
-     * @throws \Exception
      */
-    public function authenticate($data)
+    public function authenticate(array $data)
     {
 
         DB::beginTransaction();
@@ -185,7 +186,7 @@ class TwitterRepository implements OAuthInterface, OAuthExistsInterface
 
             DB::commit();
 
-            throw new \Exception( \Config::get('constants.APP_IS_NOT_ASSOCIATED') );
+            throw new InvalidArgumentException( Config::get('constants.APP_IS_NOT_ASSOCIATED') );
 
         } catch (QueryException $e) {
 

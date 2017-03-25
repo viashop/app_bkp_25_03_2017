@@ -8,6 +8,7 @@ use App\Repositories\OAuth\FacebookRepository;
 use App\Traits\Storage\StorageDataUser;
 use Artdarek\OAuth\OAuth;
 use Exception;
+use InvalidArgumentException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 
@@ -116,15 +117,19 @@ class FacebookController extends Controller
                 $url = $fb->getAuthorizationUri();
 
                 if ($request->input('error') == 'access_denied') {
-                    throw new Exception( Config::get('constants.OAUTH_DENIED') );
+                    throw new InvalidArgumentException( Config::get('constants.OAUTH_DENIED') );
                 }
 
                 return redirect((string)$url);
             }
 
-        } catch (Exception $e) {
+        } catch (InvalidArgumentException $e) {
 
             return redirect()->route('account.login')->with('message_error', $e->getMessage());
+
+        } catch (Exception $e) {
+
+            return redirect()->route('account.login')->with('message_error', Config::get('constants.ERROR_PROCESS_OAUTH'));
 
         }
 

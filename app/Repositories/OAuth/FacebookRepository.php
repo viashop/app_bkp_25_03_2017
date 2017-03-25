@@ -7,11 +7,13 @@ use App\Contracts\Repositories\OAuth\OAuthExistsInterface;
 use App\Contracts\Repositories\OAuth\OAuthInterface;
 use App\Events\Logs\User\EventActivityRecordUserLogged;
 use App\Events\Logs\User\EventActivityRecordUserRegistered;
-use App\Models\Role;
-use Illuminate\Database\QueryException;
 use App\Models\OAuth;
+use App\Models\Role;
 use App\Models\User;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 use stdClass;
 
 class FacebookRepository implements OAuthInterface, OAuthExistsInterface
@@ -56,12 +58,13 @@ class FacebookRepository implements OAuthInterface, OAuthExistsInterface
         return $this->oauth->where('facebook_id', $value)->exists();
     }
 
+
     /**
      * Register User
-     * @param $data
-     * @return bool|mixed
+     * @param array $data
+     * @return \Illuminate\Database\Eloquent\Model|null|static
      */
-    public function register($data)
+    public function register(array $data)
     {
 
         DB::beginTransaction();
@@ -137,12 +140,13 @@ class FacebookRepository implements OAuthInterface, OAuthExistsInterface
 
     }
 
+
     /**
      * Authenticate User
-     * @param $data
-     * @return mixed
+     * @param array $data
+     * @return \Illuminate\Database\Eloquent\Model|null|static
      */
-    public function authenticate($data)
+    public function authenticate(array $data)
     {
 
         DB::beginTransaction();
@@ -176,7 +180,7 @@ class FacebookRepository implements OAuthInterface, OAuthExistsInterface
 
             DB::commit();
 
-            throw new \Exception(\Config::get('constants.APP_IS_NOT_ASSOCIATED'));
+            throw new InvalidArgumentException(Config::get('constants.APP_IS_NOT_ASSOCIATED'));
 
         } catch (QueryException $e) {
 
