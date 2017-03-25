@@ -7,13 +7,11 @@ use App\Contracts\Repositories\OAuth\OAuthExistsInterface;
 use App\Contracts\Repositories\OAuth\OAuthInterface;
 use App\Events\Logs\User\EventActivityRecordUserLogged;
 use App\Events\Logs\User\EventActivityRecordUserRegistered;
-use App\Models\OAuth;
 use App\Models\Role;
-use App\Models\User;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Config;
+use App\Models\OAuth;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
 use stdClass;
 
 class FacebookRepository implements OAuthInterface, OAuthExistsInterface
@@ -57,7 +55,6 @@ class FacebookRepository implements OAuthInterface, OAuthExistsInterface
     {
         return $this->oauth->where('facebook_id', $value)->exists();
     }
-
 
     /**
      * Register User
@@ -140,12 +137,12 @@ class FacebookRepository implements OAuthInterface, OAuthExistsInterface
 
     }
 
-
     /**
      * Authenticate User
-     * @param array $data
-     * @return \Illuminate\Database\Eloquent\Model|null|static
+     * @param array $data OAuth
+     * @return mixed
      */
+
     public function authenticate(array $data)
     {
 
@@ -180,7 +177,7 @@ class FacebookRepository implements OAuthInterface, OAuthExistsInterface
 
             DB::commit();
 
-            throw new InvalidArgumentException(Config::get('constants.APP_IS_NOT_ASSOCIATED'));
+            throw new \Exception(\Config::get('constants.APP_IS_NOT_ASSOCIATED'));
 
         } catch (QueryException $e) {
 
